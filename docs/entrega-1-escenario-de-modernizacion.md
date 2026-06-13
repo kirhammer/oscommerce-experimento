@@ -29,109 +29,116 @@ La tecnología origen es el modelo de aplicación PHP conocido informalmente com
 
 | Característica | Descripción |
 |---|---|
-| **Modelo de ejecución page-script** | Cada URL pública corresponde directamente a un archivo `.php` físico en el filesystem (`/producto.php`, `/carrito.php`, `/checkout.php`). Apache resuelve la URL al archivo, lo pasa al intérprete PHP, y devuelve la salida. No hay *front controller* ni enrutador. |
-| **Bootstrap por inclusión** | Cada script comienza con `require('includes/application_top.php')`, un archivo monolítico que inicializa configuración, conexión a BD, sesión, idioma, moneda, carrito de compras y manejo de acciones. Es el equivalente funcional —no estructural— a un middleware pipeline. |
+| **Modelo de ejecución page-script** | Cada URL pública corresponde directamente a un archivo `.php` físico en el filesystem. El servidor web resuelve la URL al archivo, lo pasa al intérprete PHP, y devuelve la salida. No hay *front controller* ni enrutador: el *routing* lo realiza el filesystem. |
+| **Bootstrap por inclusión** | Cada script comienza con un `require`/`include` de un archivo monolítico que inicializa el estado global del request (configuración, conexión a BD, sesión, locale, objetos globales, despacho de acciones). Es el equivalente funcional —no estructural— a un pipeline de middleware. |
 | **`register_globals` y `$HTTP_*_VARS`** | Antes de PHP 4.1 las variables de la request (`$_GET`, `$_POST`, `$_COOKIE`) se llamaban `$HTTP_GET_VARS`, `$HTTP_POST_VARS`, `$HTTP_COOKIE_VARS`. Con la directiva `register_globals = On`, además se inyectaban automáticamente como variables globales: `?id=5` hacía aparecer `$id = 5` en el scope global. Esta característica fue declarada insegura y eliminada definitivamente en PHP 5.4. |
-| **SQL embebido en HTML** | Las consultas se construyen como strings PHP por concatenación, se ejecutan con `mysql_query()` o `mysqli_query()`, y el bucle de filas se intercala directamente con etiquetas HTML (`<tr>`, `<td>`). No hay capa de mapeo objeto-relacional, no hay *prepared statements*, no hay parametrización: la sanitización depende de llamar manualmente a `mysql_real_escape_string()` o casteo explícito. |
-| **Ausencia de MVC** | No existe distinción entre modelo, vista y controlador. El mismo archivo `producto.php` ejecuta la consulta, calcula la lógica de descuentos, decide qué mostrar, y emite el HTML resultante. La "vista" es PHP entremezclado con HTML usando `<?= ?>` o `<?php echo ?>`. |
-| **Programación procedural con clases como agrupadores** | Aunque existe la palabra clave `class`, en la práctica se usa como mecanismo de namespacing para funciones relacionadas (clase `currencies`, clase `shopping_cart`). No hay herencia significativa, no hay polimorfismo, no hay inyección de dependencias: las clases se instancian explícitamente en el bootstrap y se acceden vía variable global. |
-| **Funciones globales `tep_*`** | El proyecto adopta un prefijo de espacio de nombres por convención (`tep_db_query`, `tep_session_start`, `tep_href_link`, `tep_get_products_name`). Decenas de funciones globales agrupadas en `includes/functions/*.php` cumplen el rol que hoy ocuparían servicios o repositorios. |
-| **Configuración por `define()`** | Las claves de configuración (rutas, credenciales de BD, nombres de tablas, textos de UI) se exponen como constantes globales definidas con `define('CONST', 'valor')`. El instalador escribe el archivo `configure.php`. La i18n se implementa cargando un archivo PHP por idioma que define constantes con los textos. |
-| **Sesiones nativas PHP** | El estado conversacional (usuario logueado, carrito, idioma activo, moneda activa) vive en `$_SESSION`. Opcionalmente, las sesiones se persisten en BD usando un *save handler* personalizado. |
-| **Despliegue Apache + mod_php** | Una sola unidad de despliegue: el árbol de archivos PHP se copia a `DocumentRoot` de Apache. No hay proceso de build, no hay compilación, no hay servidor de aplicación. Apache + `mod_php` (o más adelante `PHP-FPM`) interpretan los archivos en cada request. |
+| **SQL embebido en HTML** | Las consultas se construyen como strings PHP por concatenación, se ejecutan con el driver crudo del RDBMS (`mysql_query()` o `mysqli_query()`), y el bucle de filas se intercala directamente con etiquetas HTML (`<tr>`, `<td>`). No hay capa de mapeo objeto-relacional, no hay *prepared statements*, no hay parametrización: la sanitización depende de llamar manualmente a `mysql_real_escape_string()` o casteo explícito. |
+| **Ausencia de MVC** | No existe distinción entre modelo, vista y controlador. El mismo archivo `.php` ejecuta las consultas, calcula la lógica de negocio, decide qué mostrar, y emite el HTML resultante. La "vista" es PHP entremezclado con HTML usando `<?= ?>` o `<?php echo ?>`. |
+| **Programación procedural con clases como agrupadores** | Aunque existe la palabra clave `class`, en la práctica se usa como mecanismo de namespacing para funciones relacionadas. No hay herencia significativa, no hay polimorfismo, no hay inyección de dependencias: las clases se instancian explícitamente en el bootstrap y se acceden vía variable global. |
+| **Funciones helper globales** | Es idiomático que los proyectos definan una "biblioteca interna" de decenas o cientos de funciones globales (típicamente con un prefijo de namespace por convención) que cubren acceso a BD, generación de URLs y formularios, manejo de sesión, validación, formateo. Cualquier page-script las invoca directamente. Cumplen el rol que en arquitecturas modernas ocuparían servicios y repositorios. |
+| **Configuración por `define()`** | Las claves de configuración (rutas, credenciales de BD, nombres de tablas, textos de UI) se exponen como constantes globales definidas con `define('CONST', 'valor')`. La i18n se implementa cargando un archivo PHP por idioma que define constantes con los textos traducidos. |
+| **Sesiones nativas PHP** | El estado conversacional del usuario (login, preferencias, datos transitorios) vive en `$_SESSION`. Opcionalmente, las sesiones se persisten en BD usando un *save handler* personalizado. |
+| **Despliegue Apache + mod_php** | Una sola unidad de despliegue: el árbol de archivos PHP se copia a `DocumentRoot` del servidor web. No hay proceso de build, no hay compilación, no hay servidor de aplicación. Apache + `mod_php` (o más adelante `PHP-FPM`) interpretan los archivos en cada request. |
 
 ### 2.2 Arquitectura de la tecnología legada
 
-Lo que sigue describe la arquitectura **del modelo de programación**, no de la aplicación particular. Cualquier sistema construido sobre PHP clásico encaja en este esquema.
+> **Nota sobre el alcance de esta sección.** A diferencia de las tecnologías con un *application server* explícito (por ejemplo JEE, que define una arquitectura por capas con capa web, capa EJB, capa de persistencia, etc.), el modelo de PHP clásico no tiene un *framework* de referencia oficial: la arquitectura emerge directamente del modelo de ejecución de PHP + Apache. Lo que sigue describe esa arquitectura **a nivel de paradigma tecnológico** —los elementos estructurales que aparecen en cualquier aplicación construida sobre esta tecnología— y deliberadamente **no hace referencia a archivos, funciones o clases concretas de osCommerce**. La instanciación particular de este modelo en la aplicación de ejemplo se describe en la sección 2.3.
 
 #### 2.2.1 Diagrama de la arquitectura
 
 ```mermaid
 flowchart TB
-    subgraph Cliente
-        Browser[Navegador del usuario]
+    subgraph Cliente["Capa cliente"]
+        Browser[Navegador]
     end
 
-    subgraph Servidor["Servidor Apache + mod_php"]
-        Apache[Apache HTTP Server]
-
-        subgraph Scripts["Capa de página (page-scripts)"]
-            P1[producto.php]
-            P2[carrito.php]
-            P3[checkout.php]
-            P4[admin/orders.php]
-            Pn[... un archivo por URL ...]
-        end
-
-        subgraph Bootstrap["Bootstrap compartido (include)"]
-            AT[application_top.php]
-            CFG[configure.php<br/>define&#40;&#41; constants]
-            FN[functions/*.php<br/>tep_* helpers]
-            CLS[classes/*.php<br/>shopping_cart, currencies, order]
-            LANG[languages/&lt;lang&gt;/*.php<br/>i18n via define&#40;&#41;]
-        end
-
-        SESS[(Sesión PHP<br/>$_SESSION)]
+    subgraph SAPI["Capa servidor: Apache + mod_php (SAPI)"]
+        direction TB
+        Apache[Servidor web Apache]
+        Interp[Intérprete PHP embebido]
+        Apache --- Interp
     end
 
-    subgraph Datos
-        DB[(MySQL<br/>acceso vía mysqli_*<br/>SQL concatenado)]
-        FS[(Filesystem<br/>uploads, imágenes,<br/>configuración escrita)]
+    subgraph Page["Capa de presentación + lógica (page-scripts)<br/>1 URL ⇒ 1 archivo .php ⇒ controlador + modelo + vista"]
+        P1[script_A.php]
+        P2[script_B.php]
+        Pn["… un archivo .php por cada URL pública …"]
     end
 
-    Browser -->|HTTP request URL = archivo| Apache
-    Apache -->|invoca .php| P1
-    Apache -->|invoca .php| P2
-    Apache -->|invoca .php| P3
-    Apache -->|invoca .php| P4
+    subgraph Boot["Capa de bootstrap (include compartido)<br/>require'd como primera línea de cada page-script"]
+        BS["bootstrap include<br/>inicializa estado global del request"]
+    end
 
-    P1 -.require.-> AT
-    P2 -.require.-> AT
-    P3 -.require.-> AT
-    P4 -.require.-> AT
+    subgraph Servicios["Capa de servicios procedurales"]
+        FN["Funciones helper globales<br/>agrupadas por dominio funcional<br/>(BD, sesión, formularios, validación, …)"]
+        CLS["Clases-namespace<br/>agrupan funciones afines<br/>(sin polimorfismo ni IoC)"]
+    end
 
-    AT --> CFG
-    AT --> FN
-    AT --> CLS
-    AT --> LANG
-    AT --> SESS
+    subgraph Conf["Capa de configuración global"]
+        CFG["Constantes define&#40;&#41;<br/>rutas, credenciales, parámetros"]
+        I18N["Archivos de idioma<br/>i18n vía define&#40;&#41; de constantes"]
+    end
 
-    P1 -->|tep_db_query<br/>SQL embebido en HTML| DB
-    P2 -->|tep_db_query| DB
-    P3 -->|tep_db_query| DB
-    P4 -->|tep_db_query| DB
+    subgraph Estado["Capa de estado conversacional"]
+        SESS[(Sesión PHP nativa<br/>$_SESSION)]
+    end
 
-    P1 -->|HTML directo<br/>echo / <?= ?>| Browser
-    P2 -->|HTML directo| Browser
-    P3 -->|HTML directo| Browser
-    P4 -->|HTML directo| Browser
+    subgraph Datos["Capa de persistencia"]
+        DB[(RDBMS<br/>acceso vía driver crudo<br/>mysql_* / mysqli_*<br/>SQL armado por concatenación)]
+        FS[(Filesystem<br/>uploads, archivos generados,<br/>configuración escrita)]
+    end
 
-    P3 --> FS
-    P4 --> FS
+    Browser -->|HTTP request<br/>URL = ruta de archivo en disco| Apache
+    Apache -->|delega ejecución del .php<br/>al intérprete embebido| P1
+    Apache -.->|nuevo proceso/thread<br/>por cada request| P2
+    Apache -.-> Pn
+
+    P1 -.require/include.-> BS
+    P2 -.require/include.-> BS
+    Pn -.require/include.-> BS
+
+    BS --> CFG
+    BS --> I18N
+    BS --> FN
+    BS --> CLS
+    BS --> SESS
+    BS --> DB
+
+    P1 -->|llamadas directas| FN
+    P1 -->|instancia + usa| CLS
+    P1 -->|lee constantes| CFG
+    P1 -->|lee/escribe| SESS
+    P1 -->|SQL crudo embebido<br/>en el flujo HTML| DB
+    P1 -->|HTML emitido directamente<br/>echo / &lt;?= ?&gt;| Browser
+    P1 --> FS
 ```
 
 #### 2.2.2 Elementos estructurales y sus relaciones
 
-- **Capa de página (page-scripts)**. Es el punto de entrada. Cada archivo `.php` es a la vez controlador, modelo y vista. Recibe la request (a través de `$_GET`/`$_POST` o sus alias `$HTTP_*_VARS`), decide qué hacer, consulta la base de datos, y emite HTML. No existe ningún despachador previo: el mapping URL → archivo lo hace el filesystem de Apache.
+A continuación se describen los componentes que aparecen en cualquier aplicación construida sobre PHP clásico, su responsabilidad, y la naturaleza de sus relaciones.
 
-- **Bootstrap compartido**. Es un *include* monolítico (`application_top.php`) que todos los page-scripts cargan como primera línea. Inicializa el estado global de la aplicación: parsea la configuración, abre la conexión a MySQL, arranca la sesión, resuelve el idioma y moneda activos, instancia las clases globales (carrito, navegación, etc.), y procesa "acciones" implícitas como `?action=add_product`. Su rol es análogo al pipeline de middleware en frameworks modernos, pero está implementado como un único archivo lineal de cientos de líneas.
+- **Capa servidor (Apache + mod_php / SAPI).** El servidor web traduce la URL solicitada en una ruta del filesystem. Si la ruta corresponde a un archivo `.php`, lo entrega al intérprete PHP embebido (el *Server API* o **SAPI** —`mod_php` históricamente, `PHP-FPM` después—) que lo ejecuta y devuelve la salida al cliente. Cada request invoca un proceso o hilo independiente: **no hay estado en memoria entre requests**, todo el estado conversacional se externaliza a sesión o BD.
 
-- **Funciones helper `tep_*`**. Constituyen la "biblioteca interna" del proyecto, agrupadas en `includes/functions/`. Cubren acceso a BD (`tep_db_query`, `tep_db_fetch_array`), generación de URLs y formularios (`tep_href_link`, `tep_draw_form`), manejo de sesión (`tep_session_*`), validaciones, formateo de precios, etc. Funcionan como servicios globales: cualquier script las llama directamente, sin instanciación.
+- **Capa de presentación + lógica (page-scripts).** Es la capa de entrada de la aplicación. Su característica definitoria es la **fusión de los tres roles de MVC en un mismo archivo**: cada `.php` es simultáneamente controlador (decide qué hacer con la request), modelo (consulta directamente la base de datos) y vista (emite HTML mediante `echo` o etiquetas `<?= ?>`). No existe *front controller* ni enrutador: el *mapping* URL → archivo lo realiza el filesystem del servidor web. Las únicas entradas externas son las superglobales `$_GET`, `$_POST`, `$_COOKIE`, `$_SERVER` y —en la era previa a PHP 5.4— sus alias `$HTTP_*_VARS`.
 
-- **Clases como agrupadores**. PHP introdujo `class` en la versión 4, pero su uso aquí es esencialmente sintáctico: agrupar variables y funciones relacionadas en un objeto que se instancia una vez en el bootstrap y se accede como variable global (`$cart`, `$currencies`, `$breadcrumb`). No hay polimorfismo, no hay herencia significativa, no hay inversión de control. La modularidad existe, pero a nivel léxico, no arquitectónico.
+- **Capa de bootstrap (include compartido).** Es un archivo de inicialización que cada page-script debe cargar como primera instrucción mediante `require`/`include`. Su rol funcional es análogo al pipeline de *middleware* de un framework moderno —parsear configuración, abrir la conexión a BD, arrancar la sesión, resolver locale/timezone, instanciar objetos globales, despachar acciones implícitas codificadas en la URL—, pero está implementado como **un único archivo lineal procedural**, no como una cadena composable de componentes. La relación con los page-scripts es de inclusión textual: el código del bootstrap se concatena al inicio de cada script en tiempo de ejecución.
 
-- **Configuración por constantes globales**. `configure.php` define cientos de constantes con `define()` —rutas, credenciales, nombres de tabla, textos. Estas constantes están disponibles globalmente en todos los scripts. La internacionalización es una variante del mismo patrón: el archivo del idioma activo se `require`a y define constantes con los textos traducidos.
+- **Capa de servicios procedurales (funciones helper globales).** Es la "biblioteca interna" de la aplicación: colecciones de funciones globales agrupadas por dominio funcional (acceso a BD, generación de URLs y formularios, manejo de sesión, validación, formateo) y cargadas globalmente por el bootstrap. Cualquier page-script las invoca directamente, sin instanciación ni inyección. Cumplen el rol que en arquitecturas modernas ocuparían los **servicios, repositorios y utilidades**, pero sin contratos explícitos ni reemplazabilidad.
 
-- **Capa de datos: SQL crudo**. No hay ORM ni *query builder*. El código construye strings SQL por concatenación e interpolación, los pasa a `tep_db_query()` (una *thin wrapper* sobre `mysqli_query`), itera el resultado con `tep_db_fetch_array()`, y emite el HTML correspondiente. La sanitización es responsabilidad del programador: casteo `(int)` para enteros, llamada manual a `tep_db_input()` para strings. Cualquier omisión es una inyección SQL.
+- **Clases como agrupadores léxicos.** PHP introdujo la palabra clave `class` en la versión 4, pero su uso en el paradigma clásico es esencialmente **sintáctico, no arquitectónico**: agrupar variables y funciones relacionadas en un objeto que se instancia una sola vez en el bootstrap y se accede como variable global. No hay herencia significativa, no hay polimorfismo, no hay inversión de control ni inyección de dependencias. Funcionalmente equivalen a *namespaces* manuales sobre la capa de servicios procedurales.
 
-- **Sesión PHP nativa**. Estado conversacional (login, carrito, idioma) persiste en `$_SESSION`. Es posible reemplazar el *save handler* por uno basado en BD para soportar múltiples servidores web sin sesiones compartidas en filesystem.
+- **Capa de configuración global (constantes `define()`).** Los parámetros de configuración —rutas del filesystem, credenciales de BD, identificadores de servicios externos, textos visibles— se exponen como **constantes globales** declaradas con `define('NOMBRE', valor)`. Estas constantes son inmutables y accesibles desde cualquier punto del código. La internacionalización (i18n) es una variante del mismo patrón: el archivo del idioma activo se `require`a y define constantes con los textos traducidos, que las vistas referencian directamente.
 
-- **Despliegue como filesystem**. La unidad de despliegue es un árbol de archivos. No hay artefacto compilado, no hay versionado de assets, no hay separación entre código y configuración: el archivo `configure.php` con las credenciales vive dentro del mismo árbol del código fuente.
+- **Capa de estado conversacional (sesión PHP nativa).** El estado del usuario entre requests (autenticación, preferencias, datos transitorios como un carrito) persiste en la superglobal `$_SESSION`. PHP gestiona la cookie de sesión y la serialización transparentemente. El *save handler* por defecto persiste sesiones como archivos en el filesystem del servidor; puede reemplazarse por un *handler* personalizado (típicamente backed por BD) para soportar despliegue en múltiples servidores.
+
+- **Capa de persistencia (acceso directo al RDBMS).** No existe ORM, *query builder*, ni capa de repositorios. El código de los page-scripts construye consultas SQL como **strings concatenados**, las ejecuta directamente contra el driver del RDBMS (`mysql_query` en la era PHP 4 / `mysqli_query` / `pg_query`...) e itera los resultados intercalándolos con la salida HTML. La sanitización contra inyección SQL es **responsabilidad manual del programador**: casteo explícito de enteros, escapado con funciones del driver, o ambos. No hay *prepared statements* idiomáticos en esta era.
+
+- **Capa de despliegue (filesystem como artefacto).** La unidad de despliegue es el árbol de archivos fuente copiado directamente al `DocumentRoot` del servidor web. **No hay paso de compilación, no hay artefacto binario, no hay versionado de assets, no hay separación entre código y configuración**: el archivo con las credenciales vive dentro del mismo árbol que el código fuente. Una actualización es esencialmente una copia de archivos sobre el servidor.
 
 #### 2.2.3 Consecuencias de esta arquitectura
 
 - **Acoplamiento extremo entre capas.** Una consulta SQL, una decisión de negocio, y la etiqueta `<tr>` que la muestra coexisten en líneas adyacentes. Modificar el modelo de datos implica encontrar todos los archivos donde aparece su SQL.
-- **Estado global ubicuo.** Sesión, conexión a BD, configuración, idioma, carrito: todo accesible globalmente desde cualquier punto. No hay manera de instanciar el sistema en modo *test* sin un servidor HTTP real.
+- **Estado global ubicuo.** Sesión, conexión a BD, configuración, locale, objetos de dominio: todo accesible globalmente desde cualquier punto. No hay manera de instanciar el sistema en modo *test* sin un servidor HTTP real.
 - **Cero pruebas automáticas.** La estructura no permite unit testing porque toda función depende de estado global. La única forma de probar la aplicación es ejecutarla en un servidor y simular requests HTTP.
 - **Imposibilidad de evolucionar componentes en aislamiento.** No se puede reemplazar la capa de presentación porque está incrustada en los mismos archivos que la lógica de negocio. No se puede exponer la lógica como API REST porque la lógica produce HTML directamente.
 
