@@ -42,98 +42,46 @@ La tecnología origen es el modelo de aplicación PHP conocido informalmente com
 
 ### 2.2 Arquitectura de la tecnología legada
 
-> **Nota sobre el alcance de esta sección.** A diferencia de las tecnologías con un *application server* explícito (por ejemplo JEE, que define una arquitectura por capas con capa web, capa EJB, capa de persistencia, etc.), el modelo de PHP clásico no tiene un *framework* de referencia oficial: la arquitectura emerge directamente del modelo de ejecución de PHP + Apache. Lo que sigue describe esa arquitectura **a nivel de paradigma tecnológico** —los elementos estructurales que aparecen en cualquier aplicación construida sobre esta tecnología— y deliberadamente **no hace referencia a archivos, funciones o clases concretas de osCommerce**. La instanciación particular de este modelo en la aplicación de ejemplo se describe en la sección 2.3.
+> **Alcance.** Esta sección describe la arquitectura del **paradigma tecnológico**, no la de la aplicación de ejemplo. La instanciación concreta en osCommerce se trata en §2.3.
 
-#### 2.2.1 Diagrama de la arquitectura
+La nota más importante sobre la arquitectura de PHP clásico es **lo que no tiene**. A diferencia de JEE —que define una arquitectura por capas con servidor de aplicaciones, contenedor web, contenedor EJB y capa de persistencia, cada una con su modelo de componentes—, PHP clásico **no define ninguna arquitectura de aplicación**: define únicamente un modelo de despliegue de infraestructura (servidor web + intérprete + base de datos) y un modelo de ejecución (un archivo `.php` por request). Toda estructura interna a la aplicación es convención del proyecto, no del paradigma.
+
+#### 2.2.1 Diagrama
 
 ```mermaid
-flowchart TB
-    subgraph Cliente["Capa cliente"]
-        Browser[Navegador]
+flowchart LR
+    Client[Navegador]
+
+    subgraph WebTier["Servidor web + intérprete PHP (mod_php / PHP-FPM)"]
+        Script["page-script .php<br/><br/>controlador + modelo + vista<br/>todo en el mismo archivo:<br/>lógica, SQL y HTML mezclados"]
+        Boot["bootstrap include<br/>(config, sesión,<br/>conexión a BD)"]
+        Script -.require.-> Boot
     end
 
-    subgraph SAPI["Capa servidor: Apache + mod_php (SAPI)"]
-        direction TB
-        Apache[Servidor web Apache]
-        Interp[Intérprete PHP embebido]
-        Apache --- Interp
-    end
+    DB[(RDBMS)]
+    Sess[(Sesión)]
+    FS[(Filesystem)]
 
-    subgraph Page["Capa de presentación + lógica (page-scripts)<br/>1 URL ⇒ 1 archivo .php ⇒ controlador + modelo + vista"]
-        P1[script_A.php]
-        P2[script_B.php]
-        Pn["… un archivo .php por cada URL pública …"]
-    end
-
-    subgraph Boot["Capa de bootstrap (include compartido)<br/>require'd como primera línea de cada page-script"]
-        BS["bootstrap include<br/>inicializa estado global del request"]
-    end
-
-    subgraph Servicios["Capa de servicios procedurales"]
-        FN["Funciones helper globales<br/>agrupadas por dominio funcional<br/>(BD, sesión, formularios, validación, …)"]
-        CLS["Clases-namespace<br/>agrupan funciones afines<br/>(sin polimorfismo ni IoC)"]
-    end
-
-    subgraph Conf["Capa de configuración global"]
-        CFG["Constantes define&#40;&#41;<br/>rutas, credenciales, parámetros"]
-        I18N["Archivos de idioma<br/>i18n vía define&#40;&#41; de constantes"]
-    end
-
-    subgraph Estado["Capa de estado conversacional"]
-        SESS[(Sesión PHP nativa<br/>$_SESSION)]
-    end
-
-    subgraph Datos["Capa de persistencia"]
-        DB[(RDBMS<br/>acceso vía driver crudo<br/>mysql_* / mysqli_*<br/>SQL armado por concatenación)]
-        FS[(Filesystem<br/>uploads, archivos generados,<br/>configuración escrita)]
-    end
-
-    Browser -->|HTTP request<br/>URL = ruta de archivo en disco| Apache
-    Apache -->|delega ejecución del .php<br/>al intérprete embebido| P1
-    Apache -.->|nuevo proceso/thread<br/>por cada request| P2
-    Apache -.-> Pn
-
-    P1 -.require/include.-> BS
-    P2 -.require/include.-> BS
-    Pn -.require/include.-> BS
-
-    BS --> CFG
-    BS --> I18N
-    BS --> FN
-    BS --> CLS
-    BS --> SESS
-    BS --> DB
-
-    P1 -->|llamadas directas| FN
-    P1 -->|instancia + usa| CLS
-    P1 -->|lee constantes| CFG
-    P1 -->|lee/escribe| SESS
-    P1 -->|SQL crudo embebido<br/>en el flujo HTML| DB
-    P1 -->|HTML emitido directamente<br/>echo / &lt;?= ?&gt;| Browser
-    P1 --> FS
+    Client -->|HTTP request<br/>URL = ruta de archivo| WebTier
+    WebTier -->|HTML| Client
+    Script <-->|SQL crudo| DB
+    Script <--> Sess
+    Script <--> FS
 ```
 
-#### 2.2.2 Elementos estructurales y sus relaciones
+#### 2.2.2 Elementos
 
-A continuación se describen los componentes que aparecen en cualquier aplicación construida sobre PHP clásico, su responsabilidad, y la naturaleza de sus relaciones.
+- **Tres tiers de infraestructura:** cliente (navegador), servidor web con intérprete PHP embebido, y RDBMS. No hay tier de aplicación intermedio: el código de negocio vive dentro del mismo proceso que sirve HTTP.
 
-- **Capa servidor (Apache + mod_php / SAPI).** El servidor web traduce la URL solicitada en una ruta del filesystem. Si la ruta corresponde a un archivo `.php`, lo entrega al intérprete PHP embebido (el *Server API* o **SAPI** —`mod_php` históricamente, `PHP-FPM` después—) que lo ejecuta y devuelve la salida al cliente. Cada request invoca un proceso o hilo independiente: **no hay estado en memoria entre requests**, todo el estado conversacional se externaliza a sesión o BD.
+- **Page-script como única unidad estructural.** Cada URL pública se resuelve directamente a un archivo `.php` que ejecuta los tres roles de MVC simultáneamente (controlador, modelo y vista). No hay *front controller*, no hay enrutador, no hay capa de servicios, no hay separación entre lógica y presentación. El *routing* lo realiza el filesystem.
 
-- **Capa de presentación + lógica (page-scripts).** Es la capa de entrada de la aplicación. Su característica definitoria es la **fusión de los tres roles de MVC en un mismo archivo**: cada `.php` es simultáneamente controlador (decide qué hacer con la request), modelo (consulta directamente la base de datos) y vista (emite HTML mediante `echo` o etiquetas `<?= ?>`). No existe *front controller* ni enrutador: el *mapping* URL → archivo lo realiza el filesystem del servidor web. Las únicas entradas externas son las superglobales `$_GET`, `$_POST`, `$_COOKIE`, `$_SERVER` y —en la era previa a PHP 5.4— sus alias `$HTTP_*_VARS`.
+- **Bootstrap include como único mecanismo de compartición.** El estado común (configuración, sesión, conexión a BD) se inicializa en un archivo que cada page-script carga vía `require`/`include` como primera instrucción. Es la única abstracción transversal del paradigma.
 
-- **Capa de bootstrap (include compartido).** Es un archivo de inicialización que cada page-script debe cargar como primera instrucción mediante `require`/`include`. Su rol funcional es análogo al pipeline de *middleware* de un framework moderno —parsear configuración, abrir la conexión a BD, arrancar la sesión, resolver locale/timezone, instanciar objetos globales, despachar acciones implícitas codificadas en la URL—, pero está implementado como **un único archivo lineal procedural**, no como una cadena composable de componentes. La relación con los page-scripts es de inclusión textual: el código del bootstrap se concatena al inicio de cada script en tiempo de ejecución.
+- **Acceso directo a recursos desde el page-script.** Las consultas SQL se construyen como strings y se ejecutan directamente contra el driver del RDBMS; la sesión se lee y escribe en `$_SESSION`; el HTML se emite directamente con `echo` o `<?= ?>`. No hay capas intermedias de abstracción.
 
-- **Capa de servicios procedurales (funciones helper globales).** Es la "biblioteca interna" de la aplicación: colecciones de funciones globales agrupadas por dominio funcional (acceso a BD, generación de URLs y formularios, manejo de sesión, validación, formateo) y cargadas globalmente por el bootstrap. Cualquier page-script las invoca directamente, sin instanciación ni inyección. Cumplen el rol que en arquitecturas modernas ocuparían los **servicios, repositorios y utilidades**, pero sin contratos explícitos ni reemplazabilidad.
+- **Sin estado entre requests.** Cada request crea un proceso/hilo nuevo, ejecuta el script de principio a fin, y termina. El estado conversacional se externaliza obligatoriamente a sesión o BD.
 
-- **Clases como agrupadores léxicos.** PHP introdujo la palabra clave `class` en la versión 4, pero su uso en el paradigma clásico es esencialmente **sintáctico, no arquitectónico**: agrupar variables y funciones relacionadas en un objeto que se instancia una sola vez en el bootstrap y se accede como variable global. No hay herencia significativa, no hay polimorfismo, no hay inversión de control ni inyección de dependencias. Funcionalmente equivalen a *namespaces* manuales sobre la capa de servicios procedurales.
-
-- **Capa de configuración global (constantes `define()`).** Los parámetros de configuración —rutas del filesystem, credenciales de BD, identificadores de servicios externos, textos visibles— se exponen como **constantes globales** declaradas con `define('NOMBRE', valor)`. Estas constantes son inmutables y accesibles desde cualquier punto del código. La internacionalización (i18n) es una variante del mismo patrón: el archivo del idioma activo se `require`a y define constantes con los textos traducidos, que las vistas referencian directamente.
-
-- **Capa de estado conversacional (sesión PHP nativa).** El estado del usuario entre requests (autenticación, preferencias, datos transitorios como un carrito) persiste en la superglobal `$_SESSION`. PHP gestiona la cookie de sesión y la serialización transparentemente. El *save handler* por defecto persiste sesiones como archivos en el filesystem del servidor; puede reemplazarse por un *handler* personalizado (típicamente backed por BD) para soportar despliegue en múltiples servidores.
-
-- **Capa de persistencia (acceso directo al RDBMS).** No existe ORM, *query builder*, ni capa de repositorios. El código de los page-scripts construye consultas SQL como **strings concatenados**, las ejecuta directamente contra el driver del RDBMS (`mysql_query` en la era PHP 4 / `mysqli_query` / `pg_query`...) e itera los resultados intercalándolos con la salida HTML. La sanitización contra inyección SQL es **responsabilidad manual del programador**: casteo explícito de enteros, escapado con funciones del driver, o ambos. No hay *prepared statements* idiomáticos en esta era.
-
-- **Capa de despliegue (filesystem como artefacto).** La unidad de despliegue es el árbol de archivos fuente copiado directamente al `DocumentRoot` del servidor web. **No hay paso de compilación, no hay artefacto binario, no hay versionado de assets, no hay separación entre código y configuración**: el archivo con las credenciales vive dentro del mismo árbol que el código fuente. Una actualización es esencialmente una copia de archivos sobre el servidor.
+- **Despliegue trivial.** Copiar el árbol de archivos al `DocumentRoot` del servidor web es la única operación de deploy. No hay compilación, no hay artefacto, no hay servidor de aplicación.
 
 #### 2.2.3 Consecuencias de esta arquitectura
 
