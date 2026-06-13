@@ -55,18 +55,18 @@ flowchart LR
     subgraph WebTier["Servidor web + intérprete PHP (mod_php / PHP-FPM)"]
         Script["page-script .php<br/><br/>controlador + modelo + vista<br/>todo en el mismo archivo:<br/>lógica, SQL y HTML mezclados"]
         Boot["bootstrap include<br/>(config, sesión,<br/>conexión a BD)"]
+        Sess[(Sesión<br/>archivos en disco local<br/>del servidor web)]
+        FS[(Filesystem<br/>uploads, archivos<br/>generados)]
         Script -.require.-> Boot
+        Script <--> Sess
+        Script <--> FS
     end
 
-    DB[(RDBMS)]
-    Sess[(Sesión)]
-    FS[(Filesystem)]
+    DB[(RDBMS<br/>tier separado)]
 
     Client -->|HTTP request<br/>URL = ruta de archivo| WebTier
     WebTier -->|HTML| Client
-    Script <-->|SQL crudo| DB
-    Script <--> Sess
-    Script <--> FS
+    Script <-->|SQL crudo<br/>vía red| DB
 ```
 
 #### 2.2.2 Elementos
