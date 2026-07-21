@@ -209,6 +209,15 @@
 <div class="contentContainer">
 
 <?php
+// Strangler-fig gate: with ?modern=1 the listing block is rendered by the
+// modernized React component against the REST API; the rest of the page
+// (header, breadcrumb, columns, cart) stays legacy. Without the flag the
+// page behaves exactly as before.
+    if (isset($HTTP_GET_VARS['modern'])) {
+      echo '<link rel="stylesheet" href="http://localhost:8000/embed/embed.css">' . "\n";
+      echo '<div id="modern-listing" data-category-id="' . (int)$current_category_id . '"></div>' . "\n";
+      echo '<script src="http://localhost:8000/embed/embed.js"></script>' . "\n";
+    } else {
 // optional Product List Filter
     if (PRODUCT_LIST_FILTER > 0) {
       if (isset($HTTP_GET_VARS['manufacturers_id']) && !empty($HTTP_GET_VARS['manufacturers_id'])) {
@@ -236,6 +245,7 @@
     }
 
     include(DIR_WS_MODULES . FILENAME_PRODUCT_LISTING);
+    }
 ?>
 
 </div>

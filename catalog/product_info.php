@@ -54,6 +54,16 @@
     } else {
       $products_name = $product_info['products_name'];
     }
+
+// Strangler-fig gate: with ?modern=1 the product content block is rendered
+// by the modernized React component against the REST API; the page shell
+// (header, breadcrumb, columns) stays legacy. Without the flag the page
+// behaves exactly as before.
+    if (isset($HTTP_GET_VARS['modern'])) {
+      echo '<link rel="stylesheet" href="http://localhost:8000/embed/embed.css">' . "\n";
+      echo '<div class="contentContainer" id="modern-product-info" data-product-id="' . (int)$HTTP_GET_VARS['products_id'] . '"></div>' . "\n";
+      echo '<script src="http://localhost:8000/embed/embed.js"></script>' . "\n";
+    } else {
 ?>
 
 <?php echo tep_draw_form('cart_quantity', tep_href_link(FILENAME_PRODUCT_INFO, tep_get_all_get_params(array('action')) . 'action=add_product')); ?>
@@ -230,6 +240,7 @@ $(function() {
 </form>
 
 <?php
+    }
   }
 
   require(DIR_WS_INCLUDES . 'template_bottom.php');
