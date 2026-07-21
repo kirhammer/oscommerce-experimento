@@ -107,10 +107,11 @@ export default function ProductList({ categoryId, apiBase = '', renderProductLin
           {products.map((product, index) => {
             const card = (
               <article className="product-card">
-                <div className="card-meta">
-                  <span>ID {String(product.id).padStart(4, '0')}</span>
-                  {product.model && <span>{product.model}</span>}
-                </div>
+                {product.model && (
+                  <div className="card-meta">
+                    <span>{product.model}</span>
+                  </div>
+                )}
                 {imageUrl(product.image) && (
                   <div className="figure">
                     <img src={imageUrl(product.image)} alt={product.name ?? ''} loading="lazy" />
