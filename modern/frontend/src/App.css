@@ -343,6 +343,14 @@
   box-shadow: 0 0 0 3px rgba(10, 108, 255, 0.18);
 }
 
+.list-controls .result-count {
+  margin-left: auto;
+  font-size: 0.84rem;
+  font-weight: 500;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
 /* ── Rejilla de productos ────────────────────────────────────────────────── */
 
 .product-grid {
@@ -430,30 +438,7 @@
   font-size: 1.02rem;
   line-height: 1.3;
   letter-spacing: -0.01em;
-}
-
-.product-card .specs {
-  margin: 0;
-  padding: 0 0.35rem;
   flex: 1;
-}
-
-.product-card .specs div {
-  display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
-  font-size: 0.84rem;
-  padding: 0.14rem 0;
-}
-
-.product-card .specs dt {
-  color: var(--ink-soft);
-}
-
-.product-card .specs dd {
-  margin: 0 0 0 auto;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
 }
 
 /* ── Precio ──────────────────────────────────────────────────────────────── */

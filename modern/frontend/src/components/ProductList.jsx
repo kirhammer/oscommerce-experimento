@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import { fetchJson, formatPrice, imageUrl } from '../api'
 
+// Legacy scope: the listing sorts only by its visible columns (name, price).
+// Field and direction merge into one control, the modern listing pattern.
 const SORT_OPTIONS = [
-  { value: 'name', label: 'Nombre' },
-  { value: 'model', label: 'Modelo' },
-  { value: 'price', label: 'Precio' },
-  { value: 'quantity', label: 'Existencias' },
-  { value: 'weight', label: 'Peso' },
-  { value: 'manufacturer', label: 'Fabricante' },
+  { value: 'name-asc', label: 'Nombre (A–Z)' },
+  { value: 'name-desc', label: 'Nombre (Z–A)' },
+  { value: 'price-asc', label: 'Precio: menor a mayor' },
+  { value: 'price-desc', label: 'Precio: mayor a menor' },
 ]
 
 /**
@@ -18,8 +18,7 @@ const SORT_OPTIONS = [
  * product links go to the SPA or to legacy URLs.
  */
 export default function ProductList({ categoryId, apiBase = '', currencyCode, renderProductLink, extraActions }) {
-  const [sort, setSort] = useState('name')
-  const [order, setOrder] = useState('asc')
+  const [sorting, setSorting] = useState('name-asc')
   const [manufacturer, setManufacturer] = useState('')
   const [page, setPage] = useState(1)
   const [payload, setPayload] = useState(null)
@@ -28,11 +27,12 @@ export default function ProductList({ categoryId, apiBase = '', currencyCode, re
 
   useEffect(() => {
     setPage(1)
-  }, [categoryId, sort, order, manufacturer])
+  }, [categoryId, sorting, manufacturer])
 
   useEffect(() => {
     let cancelled = false
     setLoading(true)
+    const [sort, order] = sorting.split('-')
     const params = new URLSearchParams({ sort, order, page: String(page) })
     if (manufacturer) params.set('manufacturer', manufacturer)
     if (currencyCode) params.set('currency', currencyCode)
@@ -54,7 +54,7 @@ export default function ProductList({ categoryId, apiBase = '', currencyCode, re
     return () => {
       cancelled = true
     }
-  }, [categoryId, apiBase, sort, order, manufacturer, page, currencyCode])
+  }, [categoryId, apiBase, sorting, manufacturer, page, currencyCode])
 
   const manufacturers = useMemo(() => {
     const seen = new Map()
@@ -74,29 +74,30 @@ export default function ProductList({ categoryId, apiBase = '', currencyCode, re
     <div className="product-list">
       <div className="list-controls">
         <label>
-          Ordenar
-          <select value={sort} onChange={(e) => setSort(e.target.value)}>
+          Ordenar por
+          <select value={sorting} onChange={(e) => setSorting(e.target.value)}>
             {SORT_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>{option.label}</option>
             ))}
           </select>
         </label>
-        <label>
-          Dirección
-          <select value={order} onChange={(e) => setOrder(e.target.value)}>
-            <option value="asc">Ascendente</option>
-            <option value="desc">Descendente</option>
-          </select>
-        </label>
-        <label>
-          Fabricante
-          <select value={manufacturer} onChange={(e) => setManufacturer(e.target.value)}>
-            <option value="">Todos</option>
-            {manufacturers.map(([id, name]) => (
-              <option key={id} value={id}>{name}</option>
-            ))}
-          </select>
-        </label>
+        {/* Like the legacy filter dropdown, only shown with >1 manufacturer. */}
+        {(manufacturers.length > 1 || manufacturer) && (
+          <label>
+            Fabricante
+            <select value={manufacturer} onChange={(e) => setManufacturer(e.target.value)}>
+              <option value="">Todos</option>
+              {manufacturers.map(([id, name]) => (
+                <option key={id} value={id}>{name}</option>
+              ))}
+            </select>
+          </label>
+        )}
+        {meta && meta.total > 0 && (
+          <span className="result-count">
+            Mostrando {meta.from}–{meta.to} de {meta.total} producto{meta.total === 1 ? '' : 's'}
+          </span>
+        )}
       </div>
 
       {loading && <p className="state">Cargando productos…</p>}
@@ -116,12 +117,6 @@ export default function ProductList({ categoryId, apiBase = '', currencyCode, re
                   </div>
                 )}
                 <h3>{product.name}</h3>
-                <dl className="specs">
-                  {product.manufacturer && (
-                    <div><dt>Fabricante</dt><dd>{product.manufacturer.name}</dd></div>
-                  )}
-                  <div><dt>Existencias</dt><dd>{product.quantity}</dd></div>
-                </dl>
                 <p className="price">
                   {product.special_price != null && (
                     <>
@@ -146,7 +141,7 @@ export default function ProductList({ categoryId, apiBase = '', currencyCode, re
       {meta && meta.last_page > 1 && (
         <nav className="pagination">
           <button disabled={page <= 1} onClick={() => setPage(page - 1)}>‹ Anterior</button>
-          <span>Pág. {meta.current_page} / {meta.last_page} · {meta.total} productos</span>
+          <span>Pág. {meta.current_page} / {meta.last_page}</span>
           <button disabled={page >= meta.last_page} onClick={() => setPage(page + 1)}>Siguiente ›</button>
         </nav>
       )}
