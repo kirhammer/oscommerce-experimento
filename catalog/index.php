@@ -214,6 +214,7 @@
 // (header, breadcrumb, columns, cart) stays legacy. Without the flag the
 // page behaves exactly as before.
     if (isset($HTTP_GET_VARS['modern'])) {
+      echo '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">' . "\n";
       echo '<link rel="stylesheet" href="http://localhost:8000/embed/embed.css">' . "\n";
       echo '<div id="modern-listing" data-category-id="' . (int)$current_category_id . '"></div>' . "\n";
       echo '<script src="http://localhost:8000/embed/embed.js"></script>' . "\n";

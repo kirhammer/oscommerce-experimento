@@ -11,15 +11,16 @@ const DEFAULT_API_BASE = 'http://localhost:8000'
 
 const listingHost = document.getElementById('modern-listing')
 if (listingHost) {
+  listingHost.classList.add('modern-embed')
   createRoot(listingHost).render(
     <ProductList
       categoryId={listingHost.dataset.categoryId}
       apiBase={listingHost.dataset.apiBase || DEFAULT_API_BASE}
       extraActions={(product) => (
         <p className="embed-actions">
-          <a href={`product_info.php?products_id=${product.id}&modern=1`}>Details</a>
+          <a href={`product_info.php?products_id=${product.id}&modern=1`}>Detalle</a>
           {' · '}
-          <a href={`index.php?action=buy_now&products_id=${product.id}`}>Buy now</a>
+          <a href={`index.php?action=buy_now&products_id=${product.id}`}>Comprar</a>
         </p>
       )}
     />,
@@ -28,13 +29,14 @@ if (listingHost) {
 
 const productHost = document.getElementById('modern-product-info')
 if (productHost) {
+  productHost.classList.add('modern-embed')
   createRoot(productHost).render(
     <ProductInfo
       productId={productHost.dataset.productId}
       apiBase={productHost.dataset.apiBase || DEFAULT_API_BASE}
       extraActions={(product) => (
         <p className="embed-actions">
-          <a href={`index.php?action=buy_now&products_id=${product.id}`}>Add to cart (legacy)</a>
+          <a href={`index.php?action=buy_now&products_id=${product.id}`}>Añadir al carrito (legado)</a>
         </p>
       )}
     />,

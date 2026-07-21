@@ -2,12 +2,12 @@ import { useEffect, useMemo, useState } from 'react'
 import { fetchJson, formatPrice, imageUrl } from '../api'
 
 const SORT_OPTIONS = [
-  { value: 'name', label: 'Name' },
-  { value: 'model', label: 'Model' },
-  { value: 'price', label: 'Price' },
-  { value: 'quantity', label: 'Quantity' },
-  { value: 'weight', label: 'Weight' },
-  { value: 'manufacturer', label: 'Manufacturer' },
+  { value: 'name', label: 'Nombre' },
+  { value: 'model', label: 'Modelo' },
+  { value: 'price', label: 'Precio' },
+  { value: 'quantity', label: 'Existencias' },
+  { value: 'weight', label: 'Peso' },
+  { value: 'manufacturer', label: 'Fabricante' },
 ]
 
 /**
@@ -62,7 +62,7 @@ export default function ProductList({ categoryId, apiBase = '', renderProductLin
     return [...seen.entries()]
   }, [payload])
 
-  if (error) return <p className="state state-error">Could not load products: {error}</p>
+  if (error) return <p className="state state-error">No se pudieron cargar los productos: {error}</p>
 
   const products = payload?.data ?? []
   const meta = payload?.meta
@@ -71,7 +71,7 @@ export default function ProductList({ categoryId, apiBase = '', renderProductLin
     <div className="product-list">
       <div className="list-controls">
         <label>
-          Sort by{' '}
+          Ordenar
           <select value={sort} onChange={(e) => setSort(e.target.value)}>
             {SORT_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>{option.label}</option>
@@ -79,16 +79,16 @@ export default function ProductList({ categoryId, apiBase = '', renderProductLin
           </select>
         </label>
         <label>
-          Order{' '}
+          Dirección
           <select value={order} onChange={(e) => setOrder(e.target.value)}>
-            <option value="asc">Ascending</option>
-            <option value="desc">Descending</option>
+            <option value="asc">Ascendente</option>
+            <option value="desc">Descendente</option>
           </select>
         </label>
         <label>
-          Manufacturer{' '}
+          Fabricante
           <select value={manufacturer} onChange={(e) => setManufacturer(e.target.value)}>
-            <option value="">All</option>
+            <option value="">Todos</option>
             {manufacturers.map(([id, name]) => (
               <option key={id} value={id}>{name}</option>
             ))}
@@ -96,45 +96,47 @@ export default function ProductList({ categoryId, apiBase = '', renderProductLin
         </label>
       </div>
 
-      {loading && <p className="state">Loading products…</p>}
+      {loading && <p className="state">Cargando productos…</p>}
 
       {!loading && products.length === 0 && (
-        <p className="state">There are no products to list in this category.</p>
+        <p className="state">No hay productos para listar en esta categoría.</p>
       )}
 
       {!loading && products.length > 0 && (
         <ul className="product-grid">
-          {products.map((product) => {
+          {products.map((product, index) => {
             const card = (
               <article className="product-card">
+                <div className="card-meta">
+                  <span>№ {String(product.id).padStart(4, '0')}</span>
+                  {product.model && <span>{product.model}</span>}
+                </div>
                 {imageUrl(product.image) && (
-                  <img src={imageUrl(product.image)} alt={product.name ?? ''} loading="lazy" />
+                  <div className="figure">
+                    <img src={imageUrl(product.image)} alt={product.name ?? ''} loading="lazy" />
+                  </div>
                 )}
                 <h3>{product.name}</h3>
-                <dl>
-                  {product.model && (
-                    <div><dt>Model</dt><dd>{product.model}</dd></div>
-                  )}
+                <dl className="specs">
                   {product.manufacturer && (
-                    <div><dt>Brand</dt><dd>{product.manufacturer.name}</dd></div>
+                    <div><dt>Fabricante</dt><dd>{product.manufacturer.name}</dd></div>
                   )}
-                  <div><dt>In stock</dt><dd>{product.quantity}</dd></div>
+                  <div><dt>Existencias</dt><dd>{product.quantity}</dd></div>
                 </dl>
                 <p className="price">
-                  {product.special_price != null ? (
+                  {product.special_price != null && (
                     <>
-                      <s>{formatPrice(product.price)}</s>{' '}
-                      <strong>{formatPrice(product.final_price)}</strong>
+                      <span className="sale-chip">Oferta</span>
+                      <s>{formatPrice(product.price)}</s>
                     </>
-                  ) : (
-                    <strong>{formatPrice(product.final_price)}</strong>
                   )}
+                  <strong>{formatPrice(product.final_price)}</strong>
                 </p>
                 {extraActions?.(product)}
               </article>
             )
             return (
-              <li key={product.id}>
+              <li key={product.id} style={{ animationDelay: `${Math.min(index, 12) * 45}ms` }}>
                 {renderProductLink ? renderProductLink(product, card) : card}
               </li>
             )
@@ -144,9 +146,9 @@ export default function ProductList({ categoryId, apiBase = '', renderProductLin
 
       {meta && meta.last_page > 1 && (
         <nav className="pagination">
-          <button disabled={page <= 1} onClick={() => setPage(page - 1)}>‹ Prev</button>
-          <span>Page {meta.current_page} of {meta.last_page} · {meta.total} products</span>
-          <button disabled={page >= meta.last_page} onClick={() => setPage(page + 1)}>Next ›</button>
+          <button disabled={page <= 1} onClick={() => setPage(page - 1)}>‹ Anterior</button>
+          <span>Pág. {meta.current_page} / {meta.last_page} · {meta.total} productos</span>
+          <button disabled={page >= meta.last_page} onClick={() => setPage(page + 1)}>Siguiente ›</button>
         </nav>
       )}
     </div>

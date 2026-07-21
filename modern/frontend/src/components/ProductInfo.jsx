@@ -38,29 +38,29 @@ export default function ProductInfo({ productId, apiBase = '', extraActions }) {
     }
   }, [productId, apiBase])
 
-  if (loading) return <p className="state">Loading product…</p>
-  if (notFound) return <p className="state state-error">Product not found (it may not exist or is inactive).</p>
-  if (error) return <p className="state state-error">Could not load product: {error}</p>
+  if (loading) return <p className="state">Cargando producto…</p>
+  if (notFound) return <p className="state state-error">Producto no encontrado (no existe o está inactivo).</p>
+  if (error) return <p className="state state-error">No se pudo cargar el producto: {error}</p>
 
   const availableAt = product.date_available ? new Date(product.date_available) : null
   const upcoming = availableAt && availableAt.getTime() > Date.now()
 
   return (
     <div className="product-info">
+      <p className="eyebrow">Ficha de producto · № {String(product.id).padStart(4, '0')}</p>
       <header>
         <h2>{product.name}</h2>
         {product.model && <span className="model">[{product.model}]</span>}
       </header>
 
       <p className="price">
-        {product.special_price != null ? (
+        {product.special_price != null && (
           <>
-            <s>{formatPrice(product.price)}</s>{' '}
-            <strong>{formatPrice(product.final_price)}</strong>
+            <span className="sale-chip">Oferta</span>
+            <s>{formatPrice(product.price)}</s>
           </>
-        ) : (
-          <strong>{formatPrice(product.final_price)}</strong>
         )}
+        <strong>{formatPrice(product.final_price)}</strong>
       </p>
 
       <div className="gallery">
@@ -79,10 +79,10 @@ export default function ProductInfo({ productId, apiBase = '', extraActions }) {
 
       {product.options?.length > 0 && (
         <section className="options">
-          <h3>Available options</h3>
+          <h3>Opciones disponibles</h3>
           {product.options.map((option) => (
             <label key={option.id}>
-              {option.name}{' '}
+              {option.name}
               <select>
                 {option.values.map((value) => (
                   <option key={value.id}>
@@ -98,14 +98,14 @@ export default function ProductInfo({ productId, apiBase = '', extraActions }) {
       )}
 
       <ul className="facts">
-        {product.manufacturer && <li>Manufacturer: {product.manufacturer.name}</li>}
-        <li>In stock: {product.quantity}</li>
-        {upcoming && <li>Expected availability: {availableAt.toLocaleDateString()}</li>}
-        <li>{product.reviews_count} review{product.reviews_count === 1 ? '' : 's'}</li>
+        {product.manufacturer && <li>Fabricante: {product.manufacturer.name}</li>}
+        <li>Existencias: {product.quantity}</li>
+        {upcoming && <li>Disponible el {availableAt.toLocaleDateString()}</li>}
+        <li>{product.reviews_count} reseña{product.reviews_count === 1 ? '' : 's'}</li>
         {product.url && (
           <li>
             <a href={`http://${product.url}`} target="_blank" rel="noreferrer">
-              More information
+              Más información
             </a>
           </li>
         )}

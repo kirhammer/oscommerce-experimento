@@ -1,25 +1,27 @@
-:root {
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  line-height: 1.5;
-  color: #1f2933;
-  background: #f5f7fa;
-}
+/* SPA-only globals: page atmosphere. Component styles live in App.css so the
+   embed build shares them without restyling the legacy page body. */
 
 * {
   box-sizing: border-box;
 }
 
+html {
+  height: 100%;
+}
+
 body {
   margin: 0;
-  min-height: 100vh;
+  min-height: 100%;
+  font-family: 'Archivo', system-ui, sans-serif;
+  color: #1b1815;
+  background-color: #f5f1e8;
+  background-image:
+    radial-gradient(rgba(27, 24, 21, 0.07) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(31, 63, 216, 0.05), transparent 320px);
+  background-size: 18px 18px, 100% 100%;
 }
 
-a {
-  color: #1d4ed8;
-}
-
-button,
-select,
-input {
-  font: inherit;
+::selection {
+  background: #1f3fd8;
+  color: #f5f1e8;
 }
