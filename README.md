@@ -74,6 +74,25 @@ rollout gradual por cohortes.
   la propia página); desactivar con `?modern=0` o el enlace de retorno.
 - Sin el modo activo, el comportamiento legado es idéntico al original.
 
+### Capturas — versión clásica vs. sección modernizada embebida
+
+Las cuatro capturas son de la **misma aplicación legada** (`:8080`): a la
+izquierda en modo clásico, a la derecha con el bloque de catálogo
+reemplazado por el componente React que consume la API (el shell — header,
+breadcrumb, columnas, carrito — sigue siendo legado).
+
+**Listado de productos por categoría (R1)**
+
+| Clásico | Modernizado (embed) |
+|---|---|
+| ![Listado legado](docs/img/legacy-listing.png) | ![Listado modernizado embebido](docs/img/modern-listing.png) |
+
+**Detalle de producto (R2)**
+
+| Clásico | Modernizado (embed) |
+|---|---|
+| ![Detalle legado](docs/img/legacy-detail.png) | ![Detalle modernizado embebido](docs/img/modern-detail.png) |
+
 ## Arquitectura
 
 [`docs/arquitectura.md`](docs/arquitectura.md) — diagramas (contenedores,
