@@ -106,16 +106,16 @@ export default function ProductInfo({ productId, apiBase = '', currencyCode, ext
         <li>Existencias: {product.quantity}</li>
         {upcoming && <li>Disponible el {availableAt.toLocaleDateString()}</li>}
         <li>{product.reviews_count} reseña{product.reviews_count === 1 ? '' : 's'}</li>
-        {product.url && (
-          <li>
-            <a href={`http://${product.url}`} target="_blank" rel="noreferrer">
-              Más información
-            </a>
-          </li>
-        )}
       </ul>
 
-      {extraActions?.(product)}
+      <div className="product-actions">
+        {extraActions?.(product)}
+        {product.url && (
+          <a className="link-out" href={`http://${product.url}`} target="_blank" rel="noreferrer">
+            Más información ↗
+          </a>
+        )}
+      </div>
     </div>
   )
 }

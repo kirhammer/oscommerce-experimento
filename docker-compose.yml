@@ -33,6 +33,7 @@ services:
       # Seeds schema + sample data on first boot only (ignored once the
       # datadir exists), so a fresh clone works without the web installer.
       - ./catalog/install/oscommerce.sql:/docker-entrypoint-initdb.d/01-oscommerce.sql:ro
+      - ./docker/extra-reviews.sql:/docker-entrypoint-initdb.d/02-extra-reviews.sql:ro
       - ./docker/mysql-utf8-client.cnf:/etc/mysql/conf.d/zz-utf8-client.cnf:ro
     ports:
       - "3307:3306"

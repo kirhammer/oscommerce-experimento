@@ -500,6 +500,11 @@
   margin-left: auto;
 }
 
+.product-card .embed-actions a {
+  padding: 0.4rem 1.1rem;
+  font-size: 0.85rem;
+}
+
 /* ── Paginación ──────────────────────────────────────────────────────────── */
 
 .pagination {
@@ -680,28 +685,53 @@
   font-weight: 600;
 }
 
-/* ── Acciones del embed (enlaces al legado) ──────────────────────────────── */
+/* ── Acciones (CTA sólidos, distintos de los chips informativos) ─────────── */
+
+.product-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.1rem;
+  margin-top: 1.3rem;
+}
+
+.product-actions .embed-actions {
+  margin: 0;
+}
 
 .embed-actions {
   margin: 0.5rem 0 0;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 600;
   display: flex;
   gap: 0.9rem;
 }
 
 .embed-actions a {
-  color: var(--accent-ink);
+  color: #fff;
   text-decoration: none;
-  background: var(--accent-soft);
+  background: var(--accent);
   border-radius: 999px;
-  padding: 0.3rem 0.9rem;
-  transition: background 0.15s ease, color 0.15s ease;
+  padding: 0.5rem 1.3rem;
+  box-shadow: 0 8px 18px -8px rgba(10, 108, 255, 0.55);
+  transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .embed-actions a:hover {
-  background: var(--accent);
-  color: #fff;
+  background: var(--accent-ink);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px -10px rgba(10, 108, 255, 0.6);
+}
+
+.link-out {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--accent-ink);
+  text-decoration: none;
+}
+
+.link-out:hover {
+  text-decoration: underline;
 }
 
 /* ── Ajustes del embed dentro del shell legado ───────────────────────────── */
