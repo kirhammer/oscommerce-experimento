@@ -74,6 +74,13 @@ rollout gradual por cohortes.
   la propia página); desactivar con `?modern=0` o el enlace de retorno.
 - Sin el modo activo, el comportamiento legado es idéntico al original.
 
+## Arquitectura
+
+[`docs/arquitectura.md`](docs/arquitectura.md) — diagramas (contenedores,
+secuencias SPA y strangler, clases del componente Catálogo) y el detalle de
+los **puntos de contacto** entre el legado y lo modernizado: base compartida,
+embed + CORS, modo moderno en sesión, moneda, carrito e imágenes.
+
 ## Paridad funcional
 
 - **Matriz de paridad**: [`docs/parity-matrix.md`](docs/parity-matrix.md) —
