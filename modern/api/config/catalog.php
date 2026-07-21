@@ -19,6 +19,10 @@ return [
 
     'page_size' => (int) env('CATALOG_PAGE_SIZE', 20),
 
+    // Mirrors the legacy MAX_DISPLAY_NEW_REVIEWS configuration (reviews
+    // shown per page on product_reviews.php).
+    'reviews_page_size' => (int) env('CATALOG_REVIEWS_PAGE_SIZE', 6),
+
     // Prices are stored in this currency; other currencies convert from it
     // using the exchange rate in the legacy `currencies` table.
     'default_currency' => env('CATALOG_DEFAULT_CURRENCY', 'USD'),

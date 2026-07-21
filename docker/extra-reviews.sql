@@ -15,3 +15,21 @@ INSERT INTO reviews_description VALUES (103, 1, 'Best mouse I have owned. The op
 
 INSERT INTO reviews VALUES (104, 26, NULL, 'Jorge Ramírez', 3, now(), NULL, 1, 0);
 INSERT INTO reviews_description VALUES (104, 1, 'Good mouse overall, though the side buttons feel a bit stiff. Works fine without extra drivers.');
+
+-- Reseñas extra en el producto 1 para que su listado supere el tamaño de
+-- página (6, como MAX_DISPLAY_NEW_REVIEWS del legado) y se pueda ver la
+-- paginación funcionando.
+INSERT INTO reviews VALUES (105, 1, NULL, 'María Gómez', 5, now(), NULL, 1, 0);
+INSERT INTO reviews_description VALUES (105, 1, 'Running three monitors for trading and it handles them flawlessly.');
+
+INSERT INTO reviews VALUES (106, 1, NULL, 'Pedro Salazar', 4, now(), NULL, 1, 0);
+INSERT INTO reviews_description VALUES (106, 1, 'Great 2D image quality. 3D performance is average but that is not what I bought it for.');
+
+INSERT INTO reviews VALUES (107, 1, NULL, 'Laura Ortiz', 5, now(), NULL, 1, 0);
+INSERT INTO reviews_description VALUES (107, 1, 'The multi-monitor support saved my CAD workflow. Setup took minutes.');
+
+INSERT INTO reviews VALUES (108, 1, NULL, 'Diego Castro', 4, now(), NULL, 1, 0);
+INSERT INTO reviews_description VALUES (108, 1, 'Stable drivers and clean output on all four heads. A bit pricey but worth it.');
+
+INSERT INTO reviews VALUES (109, 1, NULL, 'Sofía Reyes', 5, now(), NULL, 1, 0);
+INSERT INTO reviews_description VALUES (109, 1, 'Exactly what a financial desk needs: four displays, one slot, zero fuss.');

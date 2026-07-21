@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { fetchJson, formatPrice, imageUrl } from '../api'
 
 function Stars({ rating }) {
@@ -15,7 +15,7 @@ function Stars({ rating }) {
  * sends customers to a separate product_reviews.php page; modern PDPs list
  * reviews on the product page itself.
  */
-function ReviewsSection({ productId, apiBase, count }) {
+function ReviewsSection({ productId, apiBase, count, sectionRef }) {
   const [reviews, setReviews] = useState([])
   const [lastPage, setLastPage] = useState(1)
   const [page, setPage] = useState(1)
@@ -36,7 +36,7 @@ function ReviewsSection({ productId, apiBase, count }) {
   }, [productId, apiBase, page])
 
   return (
-    <section className="pdp-reviews" id="reviews">
+    <section className="pdp-reviews" ref={sectionRef}>
       <h3>Reseñas ({count})</h3>
       <ul>
         {reviews.map((review) => (
@@ -78,6 +78,7 @@ export default function ProductInfo({ productId, apiBase = '', currencyCode, car
   const [notFound, setNotFound] = useState(false)
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(true)
+  const reviewsRef = useRef(null)
 
   useEffect(() => {
     let cancelled = false
@@ -140,10 +141,14 @@ export default function ProductInfo({ productId, apiBase = '', currencyCode, car
           {product.manufacturer && <p className="brand">{product.manufacturer.name}</p>}
           <h2>{product.name}</h2>
           {product.reviews_count > 0 ? (
-            <a className="rating" href="#reviews">
+            <button
+              type="button"
+              className="rating rating-link"
+              onClick={() => reviewsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+            >
               <Stars rating={Math.round(product.reviews_avg_rating ?? 0)} />
               {product.reviews_avg_rating} · {product.reviews_count} reseña{product.reviews_count === 1 ? '' : 's'}
-            </a>
+            </button>
           ) : (
             <p className="rating">Sin reseñas todavía</p>
           )}
@@ -219,7 +224,12 @@ export default function ProductInfo({ productId, apiBase = '', currencyCode, car
       )}
 
       {product.reviews_count > 0 && (
-        <ReviewsSection productId={product.id} apiBase={apiBase} count={product.reviews_count} />
+        <ReviewsSection
+          productId={product.id}
+          apiBase={apiBase}
+          count={product.reviews_count}
+          sectionRef={reviewsRef}
+        />
       )}
     </div>
   )

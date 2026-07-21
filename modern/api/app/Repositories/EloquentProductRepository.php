@@ -84,7 +84,7 @@ class EloquentProductRepository implements ProductRepositoryInterface
             ->where('reviews_status', 1)
             ->with('description')
             ->orderByDesc('reviews_id')
-            ->paginate(config('catalog.page_size'))
+            ->paginate(config('catalog.reviews_page_size'))
             ->withQueryString();
     }
 }

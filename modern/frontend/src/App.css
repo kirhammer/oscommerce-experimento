@@ -632,7 +632,14 @@
   text-decoration: none;
 }
 
-a.rating:hover {
+.rating-link {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.rating-link:hover {
   color: var(--accent-ink);
 }
 
