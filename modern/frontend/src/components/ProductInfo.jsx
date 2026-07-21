@@ -47,7 +47,7 @@ export default function ProductInfo({ productId, apiBase = '', extraActions }) {
 
   return (
     <div className="product-info">
-      <p className="eyebrow">Ficha de producto · № {String(product.id).padStart(4, '0')}</p>
+      <p className="eyebrow">Producto · ID {String(product.id).padStart(4, '0')}</p>
       <header>
         <h2>{product.name}</h2>
         {product.model && <span className="model">[{product.model}]</span>}

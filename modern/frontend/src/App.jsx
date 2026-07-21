@@ -23,7 +23,7 @@ function Home() {
     <section>
       <div className="home-hero">
         <p className="eyebrow">REQ-01 · Catálogo · R1 + R2</p>
-        <h2>La lista de precios de 2003, re-tipografiada.</h2>
+        <h2>El mismo catálogo, <span className="grad">experiencia de hoy</span>.</h2>
         <p>
           Mismos datos, misma base — servidos por una API REST en capas y
           renderizados por React. Compare con la tienda legada puerto a puerto.

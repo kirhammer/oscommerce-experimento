@@ -12,16 +12,16 @@ html {
 body {
   margin: 0;
   min-height: 100%;
-  font-family: 'Archivo', system-ui, sans-serif;
-  color: #1b1815;
-  background-color: #f5f1e8;
+  font-family: 'Instrument Sans', system-ui, sans-serif;
+  color: #10182b;
+  background-color: #f4f6fb;
   background-image:
-    radial-gradient(rgba(27, 24, 21, 0.07) 1px, transparent 1px),
-    linear-gradient(180deg, rgba(31, 63, 216, 0.05), transparent 320px);
-  background-size: 18px 18px, 100% 100%;
+    radial-gradient(60rem 24rem at 85% -8rem, rgba(10, 108, 255, 0.10), transparent 60%),
+    radial-gradient(48rem 20rem at 0% 0%, rgba(16, 185, 129, 0.07), transparent 60%);
+  background-repeat: no-repeat;
 }
 
 ::selection {
-  background: #1f3fd8;
-  color: #f5f1e8;
+  background: #0a6cff;
+  color: #fff;
 }

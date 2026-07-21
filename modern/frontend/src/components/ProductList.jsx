@@ -108,7 +108,7 @@ export default function ProductList({ categoryId, apiBase = '', renderProductLin
             const card = (
               <article className="product-card">
                 <div className="card-meta">
-                  <span>№ {String(product.id).padStart(4, '0')}</span>
+                  <span>ID {String(product.id).padStart(4, '0')}</span>
                   {product.model && <span>{product.model}</span>}
                 </div>
                 {imageUrl(product.image) && (
