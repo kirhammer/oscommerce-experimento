@@ -59,13 +59,20 @@ docker compose up -d --build
 
 ## Demo strangler (embed en el legado)
 
-Las dos páginas legadas aceptan el flag `?modern=1`: conservan su shell
-(header, breadcrumb, columnas, carrito) pero el bloque de contenido del
-catálogo lo renderiza el componente React moderno consumiendo la API (CORS
-habilitado). Sin el flag, el comportamiento legado es idéntico al original.
+Las páginas de listado y detalle legadas tienen un **modo modernizado**:
+conservan su shell (header, breadcrumb, columnas, carrito) pero el bloque de
+contenido del catálogo lo renderiza el componente React moderno consumiendo
+la API (CORS habilitado). La elección **persiste en la sesión** siguiendo el
+mismo patrón que osCommerce usa para `currency`/`language`
+(`catalog/includes/modern_mode.php`): se activa una vez y sobrevive a la
+navegación; cada página muestra un enlace para cambiar de versión ("Probar la
+versión modernizada" / "Volver a la versión clásica"). En un despliegue real,
+esta segmentación viviría en el borde (cookie + routing en el gateway) para
+rollout gradual por cohortes.
 
-- http://localhost:8080/index.php?cPath=1_4&modern=1
-- http://localhost:8080/product_info.php?products_id=1&modern=1
+- Activar: http://localhost:8080/index.php?cPath=1_4&modern=1 (o el enlace en
+  la propia página); desactivar con `?modern=0` o el enlace de retorno.
+- Sin el modo activo, el comportamiento legado es idéntico al original.
 
 ## Paridad funcional
 

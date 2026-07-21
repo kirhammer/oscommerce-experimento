@@ -12,6 +12,8 @@
 
   require('includes/application_top.php');
 
+  require(DIR_WS_INCLUDES . 'modern_mode.php');
+
   if (!isset($HTTP_GET_VARS['products_id'])) {
     tep_redirect(tep_href_link(FILENAME_DEFAULT));
   }
@@ -55,16 +57,18 @@
       $products_name = $product_info['products_name'];
     }
 
-// Strangler-fig gate: with ?modern=1 the product content block is rendered
-// by the modernized React component against the REST API; the page shell
-// (header, breadcrumb, columns) stays legacy. Without the flag the page
-// behaves exactly as before.
-    if (isset($HTTP_GET_VARS['modern'])) {
+// Strangler-fig gate: in modern mode (session flag, see modern_mode.php)
+// the product content block is rendered by the modernized React component
+// against the REST API; the page shell (header, breadcrumb, columns) stays
+// legacy. Otherwise the page behaves exactly as before.
+    if ($in_modern_mode) {
       echo '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Sora:wght@500;600;700;800&display=swap">' . "\n";
       echo '<link rel="stylesheet" href="http://localhost:8000/embed/embed.css">' . "\n";
       echo '<div class="contentContainer" id="modern-product-info" data-product-id="' . (int)$HTTP_GET_VARS['products_id'] . '" data-currency="' . tep_output_string($currency) . '"></div>' . "\n";
       echo '<script src="http://localhost:8000/embed/embed.js"></script>' . "\n";
+      echo '<p class="smallText" style="text-align: right;"><a href="' . tep_href_link(FILENAME_PRODUCT_INFO, tep_get_all_get_params(array('modern')) . 'modern=0') . '">Volver a la versión clásica</a></p>' . "\n";
     } else {
+      echo '<p class="smallText" style="text-align: right;"><a href="' . tep_href_link(FILENAME_PRODUCT_INFO, tep_get_all_get_params(array('modern')) . 'modern=1') . '">Probar la versión modernizada</a></p>' . "\n";
 ?>
 
 <?php echo tep_draw_form('cart_quantity', tep_href_link(FILENAME_PRODUCT_INFO, tep_get_all_get_params(array('action')) . 'action=add_product')); ?>

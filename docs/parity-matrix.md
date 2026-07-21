@@ -19,7 +19,7 @@ Tipos: **DATO** = afecta la información devuelta sobre productos ·
 |---|---|
 | **API** | Replicado por los endpoints REST (`/api/categories/{id}/products`, `/api/products/{id}`) |
 | **SPA** | Replicado por el frontend React (consumiendo la API) |
-| **Embed** | Disponible en el demo strangler (`?modern=1`) dentro de la página legada |
+| **Embed** | Disponible en el demo strangler dentro de la página legada (modo persistente en sesión; se activa con `?modern=1` o el enlace de la página y se revierte con `?modern=0`) |
 | **Fuera de alcance** | No replicado deliberadamente; se indica el porqué |
 
 ## 1. `catalog/index.php` — listado de productos por categoría

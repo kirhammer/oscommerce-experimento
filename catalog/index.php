@@ -12,6 +12,8 @@
 
   require('includes/application_top.php');
 
+  require(DIR_WS_INCLUDES . 'modern_mode.php');
+
 // the following cPath references come from application_top.php
   $category_depth = 'top';
   if (isset($cPath) && tep_not_null($cPath)) {
@@ -209,16 +211,18 @@
 <div class="contentContainer">
 
 <?php
-// Strangler-fig gate: with ?modern=1 the listing block is rendered by the
-// modernized React component against the REST API; the rest of the page
-// (header, breadcrumb, columns, cart) stays legacy. Without the flag the
-// page behaves exactly as before.
-    if (isset($HTTP_GET_VARS['modern'])) {
+// Strangler-fig gate: in modern mode (session flag, see modern_mode.php)
+// the listing block is rendered by the modernized React component against
+// the REST API; the rest of the page (header, breadcrumb, columns, cart)
+// stays legacy. Otherwise the page behaves exactly as before.
+    if ($in_modern_mode) {
       echo '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Sora:wght@500;600;700;800&display=swap">' . "\n";
       echo '<link rel="stylesheet" href="http://localhost:8000/embed/embed.css">' . "\n";
       echo '<div id="modern-listing" data-category-id="' . (int)$current_category_id . '" data-currency="' . tep_output_string($currency) . '"></div>' . "\n";
       echo '<script src="http://localhost:8000/embed/embed.js"></script>' . "\n";
+      echo '<p class="smallText" style="text-align: right;"><a href="' . tep_href_link(FILENAME_DEFAULT, tep_get_all_get_params(array('modern')) . 'modern=0') . '">Volver a la versión clásica</a></p>' . "\n";
     } else {
+      echo '<p class="smallText" style="text-align: right;"><a href="' . tep_href_link(FILENAME_DEFAULT, tep_get_all_get_params(array('modern')) . 'modern=1') . '">Probar la versión modernizada</a></p>' . "\n";
 // optional Product List Filter
     if (PRODUCT_LIST_FILTER > 0) {
       if (isset($HTTP_GET_VARS['manufacturers_id']) && !empty($HTTP_GET_VARS['manufacturers_id'])) {
