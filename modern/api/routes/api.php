@@ -9,4 +9,7 @@ Route::get('/categories/{id}/products', [CatalogController::class, 'categoryProd
 Route::get('/products/{id}', [CatalogController::class, 'show'])
     ->whereNumber('id');
 
+Route::get('/products/{id}/reviews', [CatalogController::class, 'reviews'])
+    ->whereNumber('id');
+
 Route::get('/currencies', [CatalogController::class, 'currencies']);

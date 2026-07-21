@@ -33,6 +33,9 @@ class ProductDetailResource extends ProductResource
             ])->values(),
             'options' => $this->groupedOptions($money),
             'reviews_count' => (int) $this->reviews_count,
+            'reviews_avg_rating' => $this->reviews_avg_reviews_rating !== null
+                ? round((float) $this->reviews_avg_reviews_rating, 1)
+                : null,
         ]);
     }
 

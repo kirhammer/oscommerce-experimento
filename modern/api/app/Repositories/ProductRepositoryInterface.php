@@ -21,4 +21,7 @@ interface ProductRepositoryInterface
 
     /** An active product by id, or null when missing or inactive. */
     public function findActiveById(int $productId): ?Product;
+
+    /** Approved reviews of a product, newest first, paginated. */
+    public function findApprovedReviews(int $productId): LengthAwarePaginator;
 }

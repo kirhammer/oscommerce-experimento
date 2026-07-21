@@ -66,13 +66,7 @@ if (productHost) {
       productId={productHost.dataset.productId}
       apiBase={productHost.dataset.apiBase || DEFAULT_API_BASE}
       currencyCode={productHost.dataset.currency}
-      extraActions={(product) => (
-        <p className="embed-actions">
-          <a href={legacyHref('product_info.php', { action: 'buy_now', products_id: product.id })}>
-            Añadir al carrito
-          </a>
-        </p>
-      )}
+      cartFormAction={legacyHref('product_info.php', { action: 'add_product' })}
     />,
   )
 }

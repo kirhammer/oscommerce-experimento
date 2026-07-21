@@ -578,8 +578,10 @@
 }
 
 .pdp-main-image img {
-  max-width: 100%;
-  max-height: 320px;
+  /* Legacy catalog images are tiny (~100px); stretch them to fill the
+     stage so the gallery reads as the hero of the page. */
+  width: min(100%, 400px);
+  max-height: 340px;
   object-fit: contain;
   mix-blend-mode: multiply;
 }
@@ -620,10 +622,27 @@
 }
 
 .pdp-buybox .rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
   margin: 0.45rem 0 1rem;
   font-size: 0.88rem;
   font-weight: 500;
   color: var(--ink-soft);
+  text-decoration: none;
+}
+
+a.rating:hover {
+  color: var(--accent-ink);
+}
+
+.stars {
+  color: #f59e0b;
+  letter-spacing: 0.05em;
+}
+
+.stars .stars-off {
+  color: #d8dde6;
 }
 
 .pdp-buybox .price {
@@ -709,16 +728,37 @@
   color: var(--ink-soft);
 }
 
-.pdp-buybox .embed-actions {
-  margin: 0 0 0.9rem;
+.pdp-buybox .buy-form {
+  margin: 0.4rem 0 0.9rem;
+  display: grid;
+  gap: 0.9rem;
 }
 
-.pdp-buybox .embed-actions a {
+.pdp-buybox .cta {
   display: block;
   width: 100%;
   text-align: center;
   padding: 0.75rem 1.3rem;
   font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 8px 18px -8px rgba(10, 108, 255, 0.55);
+  transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.pdp-buybox .cta:hover:not(:disabled) {
+  background: var(--accent-ink);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px -10px rgba(10, 108, 255, 0.6);
+}
+
+.pdp-buybox .cta:disabled {
+  opacity: 0.45;
+  cursor: default;
 }
 
 .pdp-buybox .link-out {
@@ -749,6 +789,74 @@
 .pdp-description div {
   max-width: 75ch;
   color: #2c3648;
+}
+
+/* ── Reseñas en la ficha ─────────────────────────────────────────────────── */
+
+.pdp-reviews {
+  margin-top: 2rem;
+  padding-top: 1.4rem;
+  border-top: 1px solid var(--line);
+}
+
+.pdp-reviews h3 {
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 1.15rem;
+  letter-spacing: -0.01em;
+}
+
+.pdp-reviews ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.9rem;
+}
+
+.pdp-reviews li {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 0.9rem 1.1rem;
+}
+
+.pdp-reviews .review-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.35rem;
+  font-size: 0.9rem;
+}
+
+.pdp-reviews .review-head time {
+  color: var(--ink-faint);
+  font-size: 0.8rem;
+}
+
+.pdp-reviews li p {
+  margin: 0;
+  color: #2c3648;
+  max-width: 75ch;
+}
+
+.pdp-reviews .load-more {
+  margin-top: 1rem;
+  padding: 0.5rem 1.3rem;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.pdp-reviews .load-more:hover {
+  border-color: var(--accent);
+  color: var(--accent-ink);
 }
 
 /* ── Acciones (CTA sólidos, distintos de los chips informativos) ─────────── */
@@ -804,4 +912,12 @@
 
 .modern-embed {
   margin: 0.8rem 0 1.2rem;
+}
+
+/* The legacy stylesheet decorates headings; keep ours clean inside it. */
+.modern-embed h2,
+.modern-embed h3 {
+  text-decoration: none;
+  border-bottom: none;
+  background: none;
 }

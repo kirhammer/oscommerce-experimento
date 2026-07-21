@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Models\Product;
+use App\Models\Review;
 use App\Support\ListOptions;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -72,6 +73,18 @@ class EloquentProductRepository implements ProductRepositoryInterface
                 'productAttributes.value',
             ])
             ->withCount(['reviews' => fn (Builder $q) => $q->where('reviews_status', 1)])
+            ->withAvg(['reviews' => fn (Builder $q) => $q->where('reviews_status', 1)], 'reviews_rating')
             ->find($productId);
+    }
+
+    public function findApprovedReviews(int $productId): LengthAwarePaginator
+    {
+        return Review::query()
+            ->where('products_id', $productId)
+            ->where('reviews_status', 1)
+            ->with('description')
+            ->orderByDesc('reviews_id')
+            ->paginate(config('catalog.page_size'))
+            ->withQueryString();
     }
 }

@@ -57,12 +57,13 @@ Tipos: **DATO** = afecta la información devuelta sobre productos ·
 | Atributos/opciones con ajuste de precio (`products_options`, `products_attributes`, `products_options_values`) | product_info.php:159-192 | DATO | **API + SPA/Embed** | `options[] { name, values[] { name, price_adjustment, price_prefix } }` agrupados por opción como los dropdowns legados |
 | Galería de imágenes (`products_images`, sort_order, htmlcontent) | product_info.php:70-122 | DATO | **API + SPA/Embed** | `images[] { image, html_content, sort_order }` |
 | Mensaje de disponibilidad futura (`products_date_available`) | product_info.php:198-204 | DATO | **API + SPA/Embed** | campo `date_available` + aviso "Expected availability" |
-| Conteo de reseñas aprobadas (`reviews_status = 1`) | product_info.php:210-217 | DATO | **API + SPA/Embed** | `reviews_count` vía `withCount` filtrado |
+| Conteo de reseñas aprobadas (`reviews_status = 1`) | product_info.php:210-217 | DATO | **API + SPA/Embed** | `reviews_count` + `reviews_avg_rating` vía `withCount`/`withAvg` filtrados |
+| Listado de reseñas (página aparte `product_reviews.php`) | product_reviews.php | DATO | **API + SPA/Embed** (extensión de alcance) | `GET /api/products/{id}/reviews` (aprobadas, texto por idioma, paginado); se listan inline en la ficha como en el e-commerce moderno, en lugar de una página separada |
 | Enlace "más información" (`products_url`) | product_info.php (ficha) | DATO | **API + SPA/Embed** | campo `url` |
 | Contador de vistas (`products_viewed = products_viewed+1`) | product_info.php:44 | DATO | Fuera de alcance (deliberado) | mejora REST documentada: un GET no debe tener efectos secundarios; el dato no es visible en la página |
 | Redirect a home si falta `products_id` | product_info.php:15-17 | PRESENTACIÓN | Fuera de alcance | la ruta REST exige `{id}` numérico (`whereNumber`); sin id no hay ruta |
 | Mensaje "producto no encontrado" + botón continuar | product_info.php:26-37 | PRESENTACIÓN | **API + SPA** | 404 JSON + estado de error en la SPA/embed |
-| Formulario añadir al carrito / botón "In Cart" | product_info.php:59, 215 | PRESENTACIÓN | **Embed** / Fuera de alcance en SPA | el embed enlaza al carrito legado (`action=buy_now`); carrito = otro requisito |
+| Formulario añadir al carrito / botón "In Cart" | product_info.php:59, 215 | PRESENTACIÓN | **Embed** / Fuera de alcance en SPA | el embed envía el mismo POST `action=add_product` (con `id[opción]` seleccionadas) que el formulario legado y continúa a `shopping_cart.php`; carrito = otro requisito |
 | Lightbox/photoset (colorbox, photosetGrid) | product_info.php:124-154 | PRESENTACIÓN | Fuera de alcance | efecto visual del tema legado; la galería (datos) sí está replicada |
 | Módulo "también compraron" (`also_purchased`, join con órdenes) | product_info.php:221-225 | DATO | Fuera de alcance | depende del dominio de órdenes (otro requisito) |
 | Caja de info del fabricante (box lateral) | bm_manufacturer_info.php | PRESENTACIÓN | Parcial (**API**) | `manufacturer {id, name}` está en la API; la caja lateral es shell legado |

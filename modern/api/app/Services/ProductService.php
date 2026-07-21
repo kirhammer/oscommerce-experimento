@@ -27,4 +27,14 @@ class ProductService
     {
         return $this->products->findActiveById($productId);
     }
+
+    /** Approved reviews of an active product; null when the product is missing/inactive. */
+    public function reviewsFor(int $productId): ?LengthAwarePaginator
+    {
+        if ($this->products->findActiveById($productId) === null) {
+            return null;
+        }
+
+        return $this->products->findApprovedReviews($productId);
+    }
 }

@@ -13,6 +13,8 @@ frontend **React** desacoplado — compartiendo la misma base de datos MySQL.
   `?manufacturer=`, `?page=`, `?currency=`)
 - **R2** · `GET /api/products/{id}` — detalle de producto (JSON; **404** si no
   existe o está inactivo; soporta `?currency=`)
+- `GET /api/products/{id}/reviews` — reseñas aprobadas del producto
+  (paginadas; extensión de alcance: se muestran inline en la ficha)
 - `GET /api/currencies` — monedas de la tienda (tasa y reglas de formato de la
   tabla legada `currencies`); el embed sigue la moneda de sesión del legado
 

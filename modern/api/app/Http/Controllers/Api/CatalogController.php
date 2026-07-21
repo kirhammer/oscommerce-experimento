@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProductDetailResource;
 use App\Http\Resources\ProductResource;
+use App\Http\Resources\ReviewResource;
 use App\Services\CurrencyService;
 use App\Services\ProductService;
 use App\Support\ListOptions;
@@ -66,6 +67,16 @@ class CatalogController extends Controller
         return (new ProductDetailResource($product))
             ->additional(['currency' => $currency->toPayload()])
             ->response();
+    }
+
+    /** Approved reviews of a product; 404 when the product is missing or inactive. */
+    public function reviews(int $id): AnonymousResourceCollection
+    {
+        $reviews = $this->products->reviewsFor($id);
+
+        abort_if($reviews === null, 404, 'Product not found');
+
+        return ReviewResource::collection($reviews);
     }
 
     /** Store currencies available for price display. */
