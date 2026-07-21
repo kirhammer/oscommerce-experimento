@@ -15,15 +15,22 @@ class ProductResource extends JsonResource
     public function toArray(Request $request): array
     {
         $special = $this->special;
+        $currency = $request->attributes->get('catalog_currency');
+
+        $money = fn (float $amount): float => $currency !== null
+            ? $currency->convert($amount)
+            : round($amount, 2);
 
         return [
             'id' => $this->products_id,
             'name' => $this->description?->products_name,
             'model' => $this->products_model,
             'image' => $this->products_image,
-            'price' => (float) $this->products_price,
-            'special_price' => $special !== null ? (float) $special->specials_new_products_price : null,
-            'final_price' => $this->finalPrice(),
+            'price' => $money((float) $this->products_price),
+            'special_price' => $special !== null
+                ? $money((float) $special->specials_new_products_price)
+                : null,
+            'final_price' => $money($this->finalPrice()),
             'tax_class_id' => (int) $this->products_tax_class_id,
             'quantity' => (int) $this->products_quantity,
             'weight' => (float) $this->products_weight,

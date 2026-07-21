@@ -13,10 +13,11 @@ const SORT_OPTIONS = [
 /**
  * Category product listing fed by GET /api/categories/{id}/products.
  * Reusable by the SPA route and by the strangler embed inside the legacy
- * page: `apiBase` targets the gateway cross-origin and `renderProductLink`
- * decides whether product links go to the SPA or to legacy URLs.
+ * page: `apiBase` targets the gateway cross-origin, `currencyCode` follows
+ * the caller's selected currency and `renderProductLink` decides whether
+ * product links go to the SPA or to legacy URLs.
  */
-export default function ProductList({ categoryId, apiBase = '', renderProductLink, extraActions }) {
+export default function ProductList({ categoryId, apiBase = '', currencyCode, renderProductLink, extraActions }) {
   const [sort, setSort] = useState('name')
   const [order, setOrder] = useState('asc')
   const [manufacturer, setManufacturer] = useState('')
@@ -34,6 +35,7 @@ export default function ProductList({ categoryId, apiBase = '', renderProductLin
     setLoading(true)
     const params = new URLSearchParams({ sort, order, page: String(page) })
     if (manufacturer) params.set('manufacturer', manufacturer)
+    if (currencyCode) params.set('currency', currencyCode)
 
     fetchJson(`${apiBase}/api/categories/${categoryId}/products?${params}`)
       .then((json) => {
@@ -52,7 +54,7 @@ export default function ProductList({ categoryId, apiBase = '', renderProductLin
     return () => {
       cancelled = true
     }
-  }, [categoryId, apiBase, sort, order, manufacturer, page])
+  }, [categoryId, apiBase, sort, order, manufacturer, page, currencyCode])
 
   const manufacturers = useMemo(() => {
     const seen = new Map()
@@ -66,6 +68,7 @@ export default function ProductList({ categoryId, apiBase = '', renderProductLin
 
   const products = payload?.data ?? []
   const meta = payload?.meta
+  const currency = payload?.currency
 
   return (
     <div className="product-list">
@@ -107,11 +110,6 @@ export default function ProductList({ categoryId, apiBase = '', renderProductLin
           {products.map((product, index) => {
             const card = (
               <article className="product-card">
-                {product.model && (
-                  <div className="card-meta">
-                    <span>{product.model}</span>
-                  </div>
-                )}
                 {imageUrl(product.image) && (
                   <div className="figure">
                     <img src={imageUrl(product.image)} alt={product.name ?? ''} loading="lazy" />
@@ -128,10 +126,10 @@ export default function ProductList({ categoryId, apiBase = '', renderProductLin
                   {product.special_price != null && (
                     <>
                       <span className="sale-chip">Oferta</span>
-                      <s>{formatPrice(product.price)}</s>
+                      <s>{formatPrice(product.price, currency)}</s>
                     </>
                   )}
-                  <strong>{formatPrice(product.final_price)}</strong>
+                  <strong>{formatPrice(product.final_price, currency)}</strong>
                 </p>
                 {extraActions?.(product)}
               </article>

@@ -62,7 +62,7 @@
     if (isset($HTTP_GET_VARS['modern'])) {
       echo '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Sora:wght@500;600;700;800&display=swap">' . "\n";
       echo '<link rel="stylesheet" href="http://localhost:8000/embed/embed.css">' . "\n";
-      echo '<div class="contentContainer" id="modern-product-info" data-product-id="' . (int)$HTTP_GET_VARS['products_id'] . '"></div>' . "\n";
+      echo '<div class="contentContainer" id="modern-product-info" data-product-id="' . (int)$HTTP_GET_VARS['products_id'] . '" data-currency="' . tep_output_string($currency) . '"></div>' . "\n";
       echo '<script src="http://localhost:8000/embed/embed.js"></script>' . "\n";
     } else {
 ?>

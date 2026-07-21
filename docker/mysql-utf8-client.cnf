@@ -1,0 +1,5 @@
+# The MySQL 5.7 client defaults to latin1; without this, the seed SQL in
+# /docker-entrypoint-initdb.d is imported with the wrong charset and every
+# non-ASCII character (e.g. the € currency symbol) gets double-encoded.
+[client]
+default-character-set = utf8

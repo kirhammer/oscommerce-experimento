@@ -5,8 +5,9 @@ import { fetchJson, formatPrice, imageUrl } from '../api'
  * Product detail fed by GET /api/products/{id}. Reusable by the SPA route
  * and by the strangler embed inside the legacy product page.
  */
-export default function ProductInfo({ productId, apiBase = '', extraActions }) {
+export default function ProductInfo({ productId, apiBase = '', currencyCode, extraActions }) {
   const [product, setProduct] = useState(null)
+  const [currency, setCurrency] = useState(null)
   const [notFound, setNotFound] = useState(false)
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -16,10 +17,14 @@ export default function ProductInfo({ productId, apiBase = '', extraActions }) {
     setLoading(true)
     setNotFound(false)
 
-    fetchJson(`${apiBase}/api/products/${productId}`)
+    const params = new URLSearchParams()
+    if (currencyCode) params.set('currency', currencyCode)
+
+    fetchJson(`${apiBase}/api/products/${productId}?${params}`)
       .then((json) => {
         if (!cancelled) {
           setProduct(json.data)
+          setCurrency(json.currency)
           setError(null)
         }
       })
@@ -36,7 +41,7 @@ export default function ProductInfo({ productId, apiBase = '', extraActions }) {
     return () => {
       cancelled = true
     }
-  }, [productId, apiBase])
+  }, [productId, apiBase, currencyCode])
 
   if (loading) return <p className="state">Cargando producto…</p>
   if (notFound) return <p className="state state-error">Producto no encontrado (no existe o está inactivo).</p>
@@ -47,7 +52,6 @@ export default function ProductInfo({ productId, apiBase = '', extraActions }) {
 
   return (
     <div className="product-info">
-      <p className="eyebrow">Ficha de producto</p>
       <header>
         <h2>{product.name}</h2>
         {product.model && <span className="model">[{product.model}]</span>}
@@ -57,10 +61,10 @@ export default function ProductInfo({ productId, apiBase = '', extraActions }) {
         {product.special_price != null && (
           <>
             <span className="sale-chip">Oferta</span>
-            <s>{formatPrice(product.price)}</s>
+            <s>{formatPrice(product.price, currency)}</s>
           </>
         )}
-        <strong>{formatPrice(product.final_price)}</strong>
+        <strong>{formatPrice(product.final_price, currency)}</strong>
       </p>
 
       <div className="gallery">
@@ -88,7 +92,7 @@ export default function ProductInfo({ productId, apiBase = '', extraActions }) {
                   <option key={value.id}>
                     {value.name}
                     {value.price_adjustment > 0 &&
-                      ` (${value.price_prefix}${formatPrice(value.price_adjustment)})`}
+                      ` (${value.price_prefix}${formatPrice(value.price_adjustment, currency)})`}
                   </option>
                 ))}
               </select>

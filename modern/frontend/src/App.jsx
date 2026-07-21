@@ -1,6 +1,8 @@
+import { useEffect, useState } from 'react'
 import { Link, Route, Routes, useNavigate, useParams } from 'react-router-dom'
 import ProductList from './components/ProductList'
 import ProductInfo from './components/ProductInfo'
+import { fetchJson } from './api'
 import './App.css'
 
 // Top-level categories from the osCommerce sample catalog. The catalog API
@@ -55,17 +57,17 @@ function Home() {
   )
 }
 
-function CategoryPage() {
+function CategoryPage({ currencyCode }) {
   const { id } = useParams()
 
   return (
     <section>
       <div className="section-head">
-        <p className="eyebrow">Listado · GET /api/categories/{id}/products</p>
         <h2>Categoría {String(id).padStart(2, '0')}</h2>
       </div>
       <ProductList
         categoryId={id}
+        currencyCode={currencyCode}
         renderProductLink={(product, card) => (
           <Link className="card-link" to={`/products/${product.id}`}>{card}</Link>
         )}
@@ -74,28 +76,51 @@ function CategoryPage() {
   )
 }
 
-function ProductPage() {
+function ProductPage({ currencyCode }) {
   const { id } = useParams()
 
   return (
     <section>
-      <ProductInfo productId={id} />
+      <ProductInfo productId={id} currencyCode={currencyCode} />
     </section>
   )
 }
 
 export default function App() {
+  const [currencies, setCurrencies] = useState([])
+  const [currencyCode, setCurrencyCode] = useState('USD')
+
+  useEffect(() => {
+    fetchJson('/api/currencies')
+      .then((json) => setCurrencies(json.data))
+      .catch(() => setCurrencies([]))
+  }, [])
+
   return (
     <div className="app">
       <header className="app-header">
         <h1><Link to="/">Catálogo <em>modernizado</em></Link></h1>
-        <p className="tagline">osCommerce 2.3.4.1 → Laravel 11 + React · Grupo 5</p>
+        <div className="header-tools">
+          {currencies.length > 0 && (
+            <select
+              className="currency-select"
+              value={currencyCode}
+              onChange={(e) => setCurrencyCode(e.target.value)}
+              aria-label="Moneda"
+            >
+              {currencies.map((c) => (
+                <option key={c.code} value={c.code}>{c.code}</option>
+              ))}
+            </select>
+          )}
+          <p className="tagline">osCommerce 2.3.4.1 → Laravel 11 + React · Grupo 5</p>
+        </div>
       </header>
       <main>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/categories/:id" element={<CategoryPage />} />
-          <Route path="/products/:id" element={<ProductPage />} />
+          <Route path="/categories/:id" element={<CategoryPage currencyCode={currencyCode} />} />
+          <Route path="/products/:id" element={<ProductPage currencyCode={currencyCode} />} />
         </Routes>
       </main>
     </div>

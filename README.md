@@ -10,9 +10,11 @@ frontend **React** desacoplado — compartiendo la misma base de datos MySQL.
 
 - **R1** · `GET /api/categories/{id}/products` — productos activos de una
   categoría (JSON; lista vacía si no hay; soporta `?sort=`, `?order=`,
-  `?manufacturer=`, `?page=`)
+  `?manufacturer=`, `?page=`, `?currency=`)
 - **R2** · `GET /api/products/{id}` — detalle de producto (JSON; **404** si no
-  existe o está inactivo)
+  existe o está inactivo; soporta `?currency=`)
+- `GET /api/currencies` — monedas de la tienda (tasa y reglas de formato de la
+  tabla legada `currencies`); el embed sigue la moneda de sesión del legado
 
 ## Arquitectura del experimento
 
@@ -77,9 +79,9 @@ habilitado). Sin el flag, el comportamiento legado es idéntico al original.
 
 El alcance de datos es un **superconjunto** de lo que muestran las vistas
 legadas (precio de oferta, atributos con ajuste de precio, galería, fecha de
-disponibilidad, conteo de reseñas). Quedan fuera, documentados en la matriz,
-los subsistemas transversales que pertenecen a otros requisitos (carrito,
-clientes, órdenes, impuestos/multimoneda) y el contador `products_viewed`
+disponibilidad, conteo de reseñas, conversión multimoneda). Quedan fuera,
+documentados en la matriz, los subsistemas transversales que pertenecen a
+otros requisitos (carrito, clientes, órdenes, impuestos) y el contador `products_viewed`
 (un GET moderno no tiene efectos secundarios). Este alcance excede la
 estimación original de 13 puntos del documento del pre-experimento
 (parámetros de listado, atributos, galería, reseñas y embed son adiciones).
